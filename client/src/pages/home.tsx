@@ -8,6 +8,7 @@ import LatestNews from "@/components/latest-news";
 import Sidebar from "@/components/sidebar";
 import Footer from "@/components/footer";
 import AdminControls from "@/components/admin-controls";
+import AuthModal from "@/components/auth-modal";
 import { useFeaturedArticles, useArticles } from "@/hooks/useArticles";
 import { useQuery } from "@tanstack/react-query";
 import type { CategoryWithColor } from "@/types";
@@ -16,10 +17,9 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<number | undefined>();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const [, setLocation] = useLocation();
-
-  // Mock user for now - will be replaced with real authentication
-  const mockUser = { email: "jusperkato@gmail.com", role: "admin" };
 
   const { data: categories } = useQuery({
     queryKey: ["/api/categories"],
@@ -44,17 +44,20 @@ export default function Home() {
   const handleAuthAction = (action: 'login' | 'logout' | 'admin') => {
     switch (action) {
       case 'login':
-        // TODO: Implement login modal/page
-        console.log('Login clicked');
+        setIsAuthModalOpen(true);
         break;
       case 'logout':
-        // TODO: Implement logout
-        console.log('Logout clicked');
+        setUser(null);
         break;
       case 'admin':
         setLocation('/admin');
         break;
     }
+  };
+
+  const handleAuthSuccess = (userData: any) => {
+    setUser(userData);
+    setIsAuthModalOpen(false);
   };
 
   return (
@@ -63,7 +66,7 @@ export default function Home() {
         onSearch={handleSearch}
         searchQuery={searchQuery}
         onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        user={mockUser}
+        user={user}
         onAuthAction={handleAuthAction}
       />
       <Navigation 
@@ -123,7 +126,7 @@ export default function Home() {
             ) : (
               <ArticleGrid 
                 articles={articles || []} 
-                user={mockUser}
+                user={user}
                 onArticleClick={(article) => {
                   console.log('Article clicked:', article.title);
                   // TODO: Navigate to article detail page
@@ -142,8 +145,17 @@ export default function Home() {
         </div>
       </main>
       
-      <AdminControls />
+      {/* Admin Controls - only show for admin users */}
+      {user?.role === 'admin' && <AdminControls />}
+      
       <Footer />
+      
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onAuthSuccess={handleAuthSuccess}
+      />
     </div>
   );
 }
