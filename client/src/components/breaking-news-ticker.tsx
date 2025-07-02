@@ -41,5 +41,6 @@ export default function BreakingNewsTicker() {
       {/* Subtle animation line */}
       <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-white to-transparent opacity-50"></div>
     </div>
+  )
   );
 }
